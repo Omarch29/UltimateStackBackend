@@ -4,4 +4,4 @@ public record PropertyDto(Guid Id, string Name, AddressDto Address, string Descr
 {
 }
 
-public record PropertyToUpdateDto(Guid Id, string Name, AddressDto Address, string Description, decimal Price, int Beds, int Baths, int SquareFeet, bool IsActive, Guid OwnerId);
+public record PropertyForUpdateDto(Guid Id, string Name, AddressDto Address, string Description, decimal Price, int Beds, int Baths, int SquareFeet, bool IsActive, Guid OwnerId);

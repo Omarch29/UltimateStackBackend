@@ -5,9 +5,8 @@ using REPM.Domain.ValueObjects;
 
 namespace REPM.Domain.Entities;
 
-public class Payment
+public class Payment: BaseEntity
 {
-    public Guid Id { get; private set; }
     public Guid LeaseId { get; private set; }
     public Lease Lease { get; private set; }
     public Money Amount { get; private set; }
@@ -29,4 +28,21 @@ public class Payment
 
         DomainEventDispatcher.Raise(new PaymentReceived(Id, LeaseId, Amount));
     }
+    
+    public void Cancel()
+    {
+        if (Status == PaymentStatus.Canceled)
+            throw new PaymentAlreadyCancelledException("Payment is already cancelled.");
+
+        Status = PaymentStatus.Canceled;
+    }
+    
+    public void MarkAsCompleted()
+    {
+        if (Status == PaymentStatus.Completed)
+            throw new PaymentAlreadyCompletedException("Payment is already completed.");
+
+        Status = PaymentStatus.Completed;
+    }
+    
 }

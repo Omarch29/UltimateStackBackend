@@ -23,5 +23,8 @@ public class MappingProfiles: Profile
         
         // Update DTO
         CreateMap<UserforUpdateDto, User>();
+        CreateMap<PropertyForUpdateDto, Property>();
+        CreateMap<LeaseForUpdateDto, Lease>();
+        CreateMap<PaymentForUpdateDto, Payment>();
     }
 }

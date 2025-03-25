@@ -5,4 +5,4 @@ public record LeaseDto(Guid Id, Guid PropertyId, PropertyDto Property, Guid Tena
 {
 }
 
-public record LeaseToUpdateDto(Guid Id, Guid PropertyId, Guid TenantId, DateTime StartDate, DateTime EndDate, MoneyDto Rent, bool IsActive);
+public record LeaseForUpdateDto(Guid Id, Guid PropertyId, Guid TenantId, DateTime StartDate, DateTime EndDate, MoneyDto Rent, bool IsActive);
