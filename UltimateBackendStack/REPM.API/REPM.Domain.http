@@ -1,0 +1,6 @@
+@REPM.Domain_HostAddress = http://localhost:5273
+
+GET {{REPM.Domain_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

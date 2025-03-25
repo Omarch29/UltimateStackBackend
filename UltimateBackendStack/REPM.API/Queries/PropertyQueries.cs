@@ -16,4 +16,13 @@ public class PropertyQueries
     }
     
     
+    [UsePaging] // Adds pagination automatically
+    public async Task<IQueryable<PropertyDto>?> GetPropertiesForRent(
+        GetPropertiesForRentQueryHandler request,
+        [Service] IMediator mediator)
+    {
+        return await mediator.Send(request) as IQueryable<PropertyDto>;
+    }
+    
+    
 }

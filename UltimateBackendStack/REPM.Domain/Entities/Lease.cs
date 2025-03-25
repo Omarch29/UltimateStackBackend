@@ -4,11 +4,12 @@ using REPM.Domain.Enums;
 using REPM.Domain.ValueObjects;
 
 namespace REPM.Domain.Entities;
-public class Lease
+public class Lease: BaseEntity
 {
-    public Guid Id { get; private set; }
     public Guid PropertyId { get; private set; }
+    public Property Property { get; private set; }
     public Guid TenantId { get; private set; }
+    public User Tenant { get; private set; }
     public DateRange LeasePeriod { get; private set; }
     public Money RentAmount { get; private set; }
     public LeaseStatus Status { get; private set; }

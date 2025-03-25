@@ -30,6 +30,8 @@ public class GetPropertyByIdQueryHandler : IRequestHandler<GetPropertyByIdQuery,
         
         var property = await _propertyRepository.QueryToRead
             .Include(p => p.Leases)
+                .ThenInclude(l => l.Payments)
+            .Include(p => p.Owner)
             .FirstOrDefaultAsync(p => p.Id == request.Id, cancellationToken: cancellationToken);
         
         if (property != null)

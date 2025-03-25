@@ -28,7 +28,7 @@ public class GetUserByIdHandler : IRequestHandler<GetUserById, UserDto>
         Guard.Against.Null(request, nameof(request));
         Guard.Against.Null(request.Id, nameof(request.Id));
         
-        var user = await _userRepository.GetByIdAsync(request.Id);
+        var user = await _userRepository.GetByIdReadOnlyAsync(request.Id, CancellationToken.None);
         if (user != null)
         {
             return _mapper.Map<UserDto>(user);

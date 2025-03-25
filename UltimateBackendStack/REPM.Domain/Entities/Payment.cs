@@ -9,6 +9,7 @@ public class Payment
 {
     public Guid Id { get; private set; }
     public Guid LeaseId { get; private set; }
+    public Lease Lease { get; private set; }
     public Money Amount { get; private set; }
     public DateTime Date { get; private set; }
     public PaymentStatus Status { get; private set; }

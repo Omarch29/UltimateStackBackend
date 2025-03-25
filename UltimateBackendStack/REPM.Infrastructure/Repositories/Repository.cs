@@ -25,14 +25,19 @@ public class Repository<TEntity> : IRepository<TEntity>
     public IQueryable<TEntity> QueryToRead => _dbSet.AsNoTracking().Where(x => !x.IsDeleted);
     public IQueryable<TEntity> Query => _dbSet.Where(x => !x.IsDeleted);
     public IQueryable<TEntity> QueryDeleted => _dbSet.Where(x => x.IsDeleted);
-    public virtual async Task<TEntity?> GetByIdAsync(Guid id)
+    public virtual async Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await Query.FirstOrDefaultAsync(x => x.Id == id);
+        return await Query.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+    }
+    
+    public Task<TEntity?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return QueryToRead.FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public virtual async Task<List<TEntity?>> GetByIdRangeAsync(Guid[] ids)
+    public virtual async Task<List<TEntity?>> GetByIdRangeAsync(Guid[] ids, CancellationToken cancellationToken = default)
     {
-        return await Query.Where(x => ids.Contains(x.Id)).ToListAsync();
+        return (await Query.Where(x => ids.Contains(x.Id)).ToListAsync(cancellationToken))!;
     }
 
     public void Insert(TEntity entity)
@@ -63,9 +68,9 @@ public class Repository<TEntity> : IRepository<TEntity>
         }
     }
     
-    public async Task SaveChangesAsync()
+    public async Task<bool> SaveChangesAsync(CancellationToken cancellationToken)
     {
-        await _context.SaveChangesAsync();
+        return (await _context.SaveChangesAsync(cancellationToken)) > 0;
     }
     
 }

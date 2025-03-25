@@ -7,7 +7,7 @@ namespace REPM.Domain.DomainServices;
 
 public static class LeaseDomainService
 {
-    public static Lease CreateLease(User renter, Property property, DateRange leasePeriod, Money rentAmount, List<Lease> activeLeases)
+    public static Lease CreateLease(User renter, Property property, DateRange leasePeriod, Money rentAmount, List<Lease> renterActiveLeasesWithPayments)
     {
         // 1️⃣ Check if the property is available
         if (!property.IsAvailable)
@@ -22,7 +22,7 @@ public static class LeaseDomainService
         }
 
         // 3️⃣ Check if the renter has unpaid active leases
-        if (activeLeases.Any(l => l.Payments.Any(p => p.Status == PaymentStatus.Pending)))
+        if (renterActiveLeasesWithPayments.Any(l => l.Payments.Any(p => p.Status == PaymentStatus.Pending)))
         {
             throw new OverduePaymentException(renter.Id);
         }

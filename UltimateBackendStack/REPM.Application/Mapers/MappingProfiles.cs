@@ -9,13 +9,19 @@ public class MappingProfiles: Profile
 {
     public MappingProfiles()
     {
+        // Aggregates
         CreateMap<User, UserDto>();
-        CreateMap<Address, AddressDto>();
-        CreateMap<Money, MoneyDto>();
         CreateMap<Lease, LeaseDto>();
         CreateMap<Payment, PaymentDto>();
         CreateMap<Property, PropertyDto>();
         CreateMap<Property, PropertyWithLeasesDto>();
         
+        // Value Objects    
+        CreateMap<Address, AddressDto>().ReverseMap();
+        CreateMap<Money, MoneyDto>().ReverseMap();
+        CreateMap<DateRange, DateRangeDto>().ReverseMap();
+        
+        // Update DTO
+        CreateMap<UserforUpdateDto, User>();
     }
 }

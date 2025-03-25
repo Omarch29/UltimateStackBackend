@@ -10,9 +10,9 @@ public interface IRepository<TEntity>
     IQueryable<TEntity> Query { get; }
     IQueryable<TEntity> QueryToRead { get; }
     IQueryable<TEntity> QueryDeleted{ get; }
-        
-    Task<TEntity?> GetByIdAsync(Guid id);
-    Task<List<TEntity?>> GetByIdRangeAsync(Guid[] ids);
+    Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<TEntity?> GetByIdReadOnlyAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<TEntity?>> GetByIdRangeAsync(Guid[] ids, CancellationToken cancellationToken = default);
 
     void Insert(TEntity entity);
     void AddRange(IEnumerable<TEntity> entities);
@@ -22,5 +22,5 @@ public interface IRepository<TEntity>
     
     void DeleteRange(IEnumerable<TEntity> entities);
     
-    Task SaveChangesAsync();
+    Task<bool> SaveChangesAsync(CancellationToken cancellationToken);
 }

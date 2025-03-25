@@ -10,6 +10,7 @@ public class Property: BaseEntity
     public string Name { get; set; }
     public Address Address { get; set; }
     public Guid OwnerId { get; private set; }
+    public User? Owner { get; private set; }
     public bool IsListedForRent { get; private set; }
     
     // Properties of the property
