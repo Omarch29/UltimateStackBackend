@@ -1,28 +1,35 @@
 using MediatR;
 using REPM.Application.CQRS.Queries;
 using REPM.Application.DTOs;
+using REPM.Application.Filters;
 
 namespace REPM.API.GraphQL.Queries;
 
 [ExtendObjectType(typeof(Query))]
 public class PropertyQueries
 {
-    [UsePaging] // Adds pagination automatically
+    /// <summary>
+    /// Get properties unlisted by user ID with pagination and filtering support
+    /// </summary>
+    [UsePaging]
     public async Task<IQueryable<PropertyDto>?> GetProperties(
-        GetPropertiesUnlistedByUserIdQueryHandler request,
+        Guid userId,
+        PropertyFilters? filters,
         [Service] IMediator mediator)
     {
-        return await mediator.Send(request) as IQueryable<PropertyDto>;
+        var query = new GetPropertiesUnlistedByUserIdQuery(userId, filters ?? new PropertyFilters(null, null, null, null, null, null, null, null, null, null, null, null));
+        return await mediator.Send(query);
     }
     
-    
-    [UsePaging] // Adds pagination automatically
+    /// <summary>
+    /// Get properties for rent with pagination and filtering support
+    /// </summary>
+    [UsePaging]
     public async Task<IQueryable<PropertyDto>?> GetPropertiesForRent(
-        GetPropertiesForRentQueryHandler request,
+        PropertyFilters? filters,
         [Service] IMediator mediator)
     {
-        return await mediator.Send(request) as IQueryable<PropertyDto>;
+        var query = new GetPropertiesForRentQuery(filters ?? new PropertyFilters(null, null, null, null, null, null, null, null, null, null, null, null));
+        return await mediator.Send(query);
     }
-    
-    
 }

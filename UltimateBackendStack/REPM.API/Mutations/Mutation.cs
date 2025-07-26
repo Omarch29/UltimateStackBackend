@@ -6,5 +6,8 @@ namespace REPM.API.GraphQL.Mutations;
 
 public class Mutation
 {
-    
+    /// <summary>
+    /// Default hello mutation to ensure the Mutation type is valid
+    /// </summary>
+    public string Hello() => "Hello from REPM GraphQL Mutations!";
 }

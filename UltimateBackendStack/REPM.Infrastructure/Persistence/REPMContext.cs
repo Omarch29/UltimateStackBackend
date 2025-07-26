@@ -24,7 +24,8 @@ public class REPMContext : DbContext, IUnitOfWork
     
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
     {
-        var userId = _httpContextAccessor.HttpContext.User.GetUserId();
+        // Get user ID from HTTP context if available, otherwise use a default value for seeding
+        var userId = _httpContextAccessor.HttpContext?.User?.GetUserId() ?? Guid.Empty;
 
         foreach (var entry in ChangeTracker.Entries<BaseEntity>())
         {

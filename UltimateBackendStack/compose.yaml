@@ -1,0 +1,7 @@
+﻿services:
+  repm.api:
+    image: repm.api
+    build:
+      context: .
+      dockerfile: REPM.API/Dockerfile
+

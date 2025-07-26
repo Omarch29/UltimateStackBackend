@@ -12,7 +12,7 @@ public static class InfrastructureExtensions
     // Inject Services
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        var sqlConnectionString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING") ??
+        var sqlConnectionString = Environment.GetEnvironmentVariable("REPM_CONNECTION_STRING") ??
                                   configuration.GetConnectionString("WebApiDatabase");
         services.AddDbContext<REPMContext>(options =>
         {

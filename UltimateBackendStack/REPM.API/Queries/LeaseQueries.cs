@@ -7,12 +7,15 @@ namespace REPM.API.GraphQL.Queries;
 [ExtendObjectType(typeof(Query))]
 public class LeaseQueries
 {
-    [UsePaging] // Adds pagination automatically
-    public async Task<IQueryable<LeaseDto>?> GetLeases(
-        GetLeasesByPropertyIdQuery request,
+    /// <summary>
+    /// Get leases by property ID with pagination support
+    /// </summary>
+    [UsePaging]
+    public async Task<IQueryable<LeaseDto>?> GetLeasesByPropertyId(
+        Guid propertyId,
         [Service] IMediator mediator)
     {
-        return await mediator.Send(request) as IQueryable<LeaseDto>;
+        var request = new GetLeasesByPropertyIdQuery(propertyId);
+        return await mediator.Send(request);
     }
-    
 }
