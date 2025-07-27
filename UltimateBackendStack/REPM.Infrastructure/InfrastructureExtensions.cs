@@ -27,4 +27,23 @@ public static class InfrastructureExtensions
 
         return services;
     }
+    
+    // MCP-specific infrastructure setup without logging
+    public static IServiceCollection AddInfrastructureForMcp(this IServiceCollection services, IConfiguration configuration)
+    {
+        var sqlConnectionString = Environment.GetEnvironmentVariable("REPM_CONNECTION_STRING") ??
+                                  configuration.GetConnectionString("WebApiDatabase");
+        services.AddDbContext<REPMContext>(options =>
+        {
+            options.UseNpgsql(sqlConnectionString);
+            // No sensitive data logging for MCP
+        });
+
+        services.AddHttpContextAccessor();
+        
+        services.AddScoped<IUnitOfWork, REPMContext>();
+        services.AddTransient(typeof(IRepository<>), typeof(Repository<>));
+
+        return services;
+    }
 }

@@ -14,11 +14,10 @@ var builder = Host.CreateApplicationBuilder(args);
 
 // Configure logging
 builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
-builder.Logging.SetMinimumLevel(LogLevel.Warning); // Reduce noise for MCP
+// No logging providers for MCP - STDIO must be pure JSON-RPC
 
 // Add services
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructureForMcp(builder.Configuration);
 builder.Services.AddApplicationDependencies(builder.Configuration);
 
 // Add MCP services
@@ -28,10 +27,18 @@ builder.Services.AddScoped<McpServer>();
 var host = builder.Build();
 
 // Ensure database is created and seeded
-using (var scope = host.Services.CreateScope())
+try
 {
-    var context = scope.ServiceProvider.GetRequiredService<REPMContext>();
-    await context.Database.EnsureCreatedAsync();
+    using (var scope = host.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<REPMContext>();
+        await context.Database.EnsureCreatedAsync();
+    }
+}
+catch (Exception)
+{
+    // If database connection fails, continue without it
+    // The server will still respond to MCP requests but won't have data
 }
 
 // Start MCP server
