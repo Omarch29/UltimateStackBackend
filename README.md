@@ -1,71 +1,85 @@
 # REPM - Real Estate Property Manager 🏡
 
-**REPM** (Real Estate Property Manager) is a comprehensive backend system built for managing real estate properties, leases, users, and related operations. This project serves as both a solid f## 🎯 Goal of This Project
+**REPM** (Real Estate Property Manager) is a comprehensive backend system built for managing real estate properties, leases, users, and related operations. This project serves as both a solid foundation for real-world property management platforms and a technical showcase of```
+
+### 📚 Detailed Documentation Links:
+
+- **[📘 REPM.API](./UltimateBackendStack/REPM.API/README.md)** — GraphQL setup, mutations, queries, and web API entry point 🌐
+- **[📗 REPM.MCP](./UltimateBackendStack/REPM.MCP/README.md)** — Model Context Protocol server for AI assistant integration 🤖
+- **[📙 REPM.Application](./UltimateBackendStack/REPM.Application/README.md)** — Commands, Queries, DTOs, and Business Logic 📁
+- **[📕 REPM.Domain](./UltimateBackendStack/REPM.Domain/README.md)** — Entities, Value Objects, Domain Events, and Business Rules 📜
+- **[📔 REPM.Infrastructure](./UltimateBackendStack/REPM.Infrastructure/README.md)** — Repositories, DbContext, and external integrations 🔌ed software architecture patterns. 🌟
+
+The system provides multiple interfaces including a **GraphQL API** and a **Model Context Protocol (MCP) server** for seamless integration with AI assistants like Claude.
+
+## 🏗️ Basic Architecture
+
+REPM follows **Clean Architecture** principles with clear separation of concerns across multiple layers:
+
+```mermaid
+graph TB
+    subgraph "🤖 AI Assistant Layer"
+        AI[Claude AI / ChatGPT]
+    end
+    
+    subgraph "🌐 Presentation Layer"
+        API[GraphQL API]
+        MCP[MCP Server]
+    end
+    
+    subgraph "📁 Application Layer"
+        APP[Business Logic<br/>Commands & Queries]
+    end
+    
+    subgraph "📜 Domain Layer"
+        DOM[Entities & Business Rules]
+    end
+    
+    subgraph "🔌 Infrastructure Layer"
+        INF[Data Access & External Services]
+    end
+    
+    subgraph "🐘 Data Layer"
+        DB[(PostgreSQL)]
+    end
+    
+    AI --> MCP
+    API --> APP
+    MCP --> APP
+    APP --> DOM
+    APP --> INF
+    INF --> DOM
+    INF --> DB
+    
+    style AI fill:#e3f2fd
+    style API fill:#f3e5f5
+    style MCP fill:#e8f5e8
+    style APP fill:#fff3e0
+    style DOM fill:#fce4ec
+    style INF fill:#f1f8e9
+    style DB fill:#e0f2f1
+```
+
+## 🛠️ Technologies & Patterns
+
+This project showcases modern .NET backend architecture using:
+
+- **.NET 9** 🖥️
+- **GraphQL using HotChocolate** 🍫
+- **Model Context Protocol (MCP) for AI assistant integration** 🤖
+- **Domain-Driven Design (DDD) to model complex real-world behaviors** 🌍
+- **Clean Architecture to keep concerns separated and maintainable** 🧩
+- **CQRS (Command Query Responsibility Segregation) to separate read/write operations** 📊
+- **Mediator Pattern via MediatR for decoupling command and query handling** 🔄
+- **Repository Pattern for abstracting data access** 📂
+- **Unit of Work Pattern to manage transactional consistency** ⚖️
+- **PostgreSQL as the primary database** 🐘
+- **Entity Framework Core for data access** 📊
+- **AutoMapper for object-to-object mapping** 🗺️
+
+## 🎯 Goal of This Project
 
 The main goal of REPM is to put into practice advanced architectural patterns and serve as a **template** or **starting point** for robust backend systems. It aims to balance maintainability, scalability, and domain expressiveness while embracing .NET's powerful ecosystem. 💪
-
-## 🚀 Use Case Flows
-
-### 1. Property Management Flow
-
-```mermaid
-sequenceDiagram
-    participant Owner as Property Owner
-    participant API as REPM System
-    participant DB as Database
-    
-    Owner->>API: Create Property
-    API->>DB: Save Property
-    DB-->>API: Property Created
-    API-->>Owner: Success + Property ID
-    
-    Owner->>API: List Property for Rent
-    API->>DB: Update IsListedForRent
-    DB-->>API: Updated
-    API-->>Owner: Property Listed
-```
-
-### 2. Lease Creation Flow
-
-```mermaid
-sequenceDiagram
-    participant Renter as Renter
-    participant API as REPM System
-    participant Owner as Property Owner
-    participant DB as Database
-    
-    Renter->>API: Search Properties
-    API->>DB: Query Available Properties
-    DB-->>API: Property List
-    API-->>Renter: Show Properties
-    
-    Renter->>API: Request Lease
-    API->>DB: Create Lease
-    API->>DB: Update Property Status
-    DB-->>API: Lease Created
-    API-->>Renter: Lease Confirmed
-    API-->>Owner: Notify New Lease
-```
-
-### 3. MCP AI Assistant Flow
-
-```mermaid
-sequenceDiagram
-    participant User as User
-    participant Claude as Claude AI
-    participant MCP as MCP Server
-    participant APP as Application Layer
-    participant DB as Database
-    
-    User->>Claude: "Create a property in Buenos Aires"
-    Claude->>MCP: create_property tool call
-    MCP->>APP: CreatePropertyCommand
-    APP->>DB: Save Property
-    DB-->>APP: Property Created
-    APP-->>MCP: Success Response
-    MCP-->>Claude: Tool Result
-    Claude-->>User: "Property created successfully!"
-```
 
 ## 🔧 Basic Use Cases
 
@@ -143,7 +157,8 @@ mutation {
     }
   }
 }
-```r real-world property management platforms and a technical showcase of advanced software architecture patterns. 🌟
+```
+r real-world property management platforms and a technical showcase of advanced software architecture patterns. 🌟
 
 The system provides multiple interfaces including a **GraphQL API** and a **Model Context Protocol (MCP) server** for seamless integration with AI assistants like Claude.
 
@@ -283,18 +298,18 @@ graph LR
     MP --> APP
 ```
 
-## 📦 Project Structure
+## 📦 Project Structure & Documentation
 
-This solution is organized into several projects to enforce clear separation of concerns. Each project contains its own `README.md` with more detailed information:
+This solution is organized into several projects to enforce clear separation of concerns. Each project contains its own detailed `README.md` with specific implementation details:
 
 ```mermaid
 graph TD
-    subgraph "Solution Structure"
-        API[REPM.API<br/>🌐 GraphQL Endpoint]
-        MCP[REPM.MCP<br/>🤖 AI Assistant Server]
-        APP[REPM.Application<br/>📁 Business Logic]
-        DOM[REPM.Domain<br/>📜 Core Entities]
-        INF[REPM.Infrastructure<br/>🔌 Data Access]
+    subgraph "🏗️ Solution Structure"
+        API[📘 REPM.API<br/>GraphQL Endpoint]
+        MCP[📗 REPM.MCP<br/>AI Assistant Server]
+        APP[📙 REPM.Application<br/>Business Logic]
+        DOM[📕 REPM.Domain<br/>Core Entities]
+        INF[📔 REPM.Infrastructure<br/>Data Access]
     end
     
     API --> APP
