@@ -2,6 +2,66 @@
 
 The **REPM.Application** layer is the core of the business orchestration logic in the Real Estate Property Manager (REPM) system. It serves as the bridge between the API layer (GraphQL) and the domain layer, handling commands, queries, filtering, and validations in a decoupled and scalable way.
 
+## 🏗️ Application Architecture
+
+```mermaid
+graph TB
+    subgraph "API Layer"
+        GQL[GraphQL API]
+        MCP[MCP Server]
+    end
+    
+    subgraph "Application Layer"
+        MED[MediatR Pipeline]
+        CMD[Commands]
+        QRY[Queries]
+        HAND[Handlers]
+        VAL[Validators]
+        MAP[AutoMapper]
+        FILTER[Query Filters]
+    end
+    
+    subgraph "Cross-Cutting Concerns"
+        LOG[Logging]
+        CACHE[Caching]
+        AUDIT[Audit Trail]
+        ERR[Error Handling]
+    end
+    
+    subgraph "Domain & Infrastructure"
+        DOM[Domain Layer]
+        REPO[Repositories]
+        DB[(Database)]
+    end
+    
+    GQL --> MED
+    MCP --> MED
+    
+    MED --> CMD
+    MED --> QRY
+    MED --> VAL
+    
+    CMD --> HAND
+    QRY --> HAND
+    VAL --> HAND
+    
+    HAND --> MAP
+    HAND --> FILTER
+    HAND --> DOM
+    HAND --> REPO
+    
+    MED --> LOG
+    MED --> CACHE
+    MED --> AUDIT
+    MED --> ERR
+    
+    REPO --> DB
+    
+    style MED fill:#e3f2fd
+    style HAND fill:#e8f5e8
+    style DOM fill:#fff3e0
+```
+
 ---
 
 ## 🧭 Purpose
@@ -16,11 +76,84 @@ This layer is responsible for:
 
 This keeps the domain layer clean and focused, and provides flexibility in how requests are handled.
 
+## 🔄 CQRS Flow Architecture
+
+```mermaid
+graph LR
+    subgraph "Command Side (Write Operations)"
+        WCLIENT[Client Request]
+        WCMD[Command]
+        WVAL[Validator]
+        WHAND[Command Handler]
+        WDOM[Domain Logic]
+        WREPO[Repository]
+    end
+    
+    subgraph "Query Side (Read Operations)"
+        RCLIENT[Client Request]
+        RQRY[Query]
+        RFILTER[Query Filter]
+        RHAND[Query Handler]
+        RPROJ[Projection]
+        RREPO[Repository]
+    end
+    
+    subgraph "Shared Infrastructure"
+        MED[MediatR]
+        DB[(Database)]
+    end
+    
+    WCLIENT --> WCMD
+    RCLIENT --> RQRY
+    
+    WCMD --> MED
+    RQRY --> MED
+    
+    MED --> WVAL
+    MED --> RFILTER
+    
+    WVAL --> WHAND
+    RFILTER --> RHAND
+    
+    WHAND --> WDOM
+    WHAND --> WREPO
+    
+    RHAND --> RPROJ
+    RHAND --> RREPO
+    
+    WREPO --> DB
+    RREPO --> DB
+    
+    style WCMD fill:#ffebee
+    style RQRY fill:#e8f5e8
+    style MED fill:#e3f2fd
+```
+
 ---
 
 ## 🧱 Patterns in Use
 
 ### 📌 Mediator Pattern (via MediatR)
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Controller
+    participant MediatR
+    participant Handler
+    participant Domain
+    participant Repository
+    
+    Client->>Controller: HTTP Request
+    Controller->>MediatR: Send(command/query)
+    MediatR->>Handler: Route to Handler
+    Handler->>Domain: Business Logic
+    Handler->>Repository: Data Access
+    Repository-->>Handler: Result
+    Handler-->>MediatR: Response
+    MediatR-->>Controller: Result
+    Controller-->>Client: HTTP Response
+```
 
 The **Mediator Pattern** decouples the sender of a request from its handler. In REPM:
 
@@ -39,6 +172,44 @@ This promotes **loose coupling**, **single responsibility**, and **testability**
 ---
 
 ### 📌 CQRS (Command Query Responsibility Segregation)
+
+```mermaid
+graph TB
+    subgraph "Commands (Write)"
+        C1[CreatePropertyCommand]
+        C2[CreateLeaseCommand]
+        C3[MakePaymentCommand]
+        C4[UpdatePropertyCommand]
+    end
+    
+    subgraph "Queries (Read)"
+        Q1[GetPropertiesForRentQuery]
+        Q2[GetUserByIdQuery]
+        Q3[GetLeasesByPropertyQuery]
+        Q4[GetPropertyDetailsQuery]
+    end
+    
+    subgraph "Handlers"
+        CH[Command Handlers]
+        QH[Query Handlers]
+    end
+    
+    C1 --> CH
+    C2 --> CH
+    C3 --> CH
+    C4 --> CH
+    
+    Q1 --> QH
+    Q2 --> QH
+    Q3 --> QH
+    Q4 --> QH
+    
+    CH --> WRITE[Write Database]
+    QH --> READ[Read Database]
+    
+    style C1 fill:#ffebee
+    style Q1 fill:#e8f5e8
+```
 
 This pattern separates **write operations** (`Commands`) from **read operations** (`Queries`). Each use case is modeled independently for clarity and performance:
 
