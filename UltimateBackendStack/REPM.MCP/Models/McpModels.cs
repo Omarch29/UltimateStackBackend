@@ -9,7 +9,7 @@ public class McpRequest
     public string JsonRpc { get; set; } = "2.0";
 
     [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    public object Id { get; set; } = string.Empty;
 
     [JsonPropertyName("method")]
     public string Method { get; set; } = string.Empty;
@@ -24,12 +24,14 @@ public class McpResponse
     public string JsonRpc { get; set; } = "2.0";
 
     [JsonPropertyName("id")]
-    public string Id { get; set; } = string.Empty;
+    public object Id { get; set; } = string.Empty;
 
     [JsonPropertyName("result")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public object? Result { get; set; }
 
     [JsonPropertyName("error")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public McpError? Error { get; set; }
 }
 
@@ -110,7 +112,7 @@ public class InitializeParams
 public class InitializeResult
 {
     [JsonPropertyName("protocolVersion")]
-    public string ProtocolVersion { get; set; } = "2024-11-05";
+    public string ProtocolVersion { get; set; } = "2025-06-18";
 
     [JsonPropertyName("capabilities")]
     public ServerCapabilities Capabilities { get; set; } = new();

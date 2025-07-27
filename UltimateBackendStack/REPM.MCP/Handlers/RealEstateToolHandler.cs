@@ -32,6 +32,7 @@ public class RealEstateToolHandler
                 "get_user_properties" => await HandleGetUserProperties(toolCall.Arguments),
                 "get_leases_by_property" => await HandleGetLeasesByProperty(toolCall.Arguments),
                 "create_lease" => await HandleCreateLease(toolCall.Arguments),
+                "create_property" => await HandleCreateProperty(toolCall.Arguments),
                 "make_payment" => await HandleMakePayment(toolCall.Arguments),
                 "search_properties" => await HandleSearchProperties(toolCall.Arguments),
                 _ => CreateErrorResult($"Unknown tool: {toolCall.Name}")
@@ -280,6 +281,70 @@ public class RealEstateToolHandler
         return new PropertyFilters(
             null, city, state, null, minPrice, maxPrice,
             minBedrooms, maxBedrooms, null, null, null, null);
+    }
+
+    private async Task<ToolResult> HandleCreateProperty(Dictionary<string, object> arguments)
+    {
+        try
+        {
+            // Extract required fields
+            var name = arguments.TryGetValue("name", out var nameObj) ? nameObj.ToString() : throw new ArgumentException("Name is required");
+            var description = arguments.TryGetValue("description", out var descObj) ? descObj.ToString() : throw new ArgumentException("Description is required");
+            
+            // Handle numeric values properly for JsonElement
+            var price = arguments.TryGetValue("price", out var priceObj) ? 
+                (priceObj is JsonElement priceElement ? priceElement.GetDecimal() : Convert.ToDecimal(priceObj)) : 
+                throw new ArgumentException("Price is required");
+                
+            var beds = arguments.TryGetValue("beds", out var bedsObj) ? 
+                (bedsObj is JsonElement bedsElement ? bedsElement.GetInt32() : Convert.ToInt32(bedsObj)) : 
+                throw new ArgumentException("Beds is required");
+                
+            var baths = arguments.TryGetValue("baths", out var bathsObj) ? 
+                (bathsObj is JsonElement bathsElement ? bathsElement.GetInt32() : Convert.ToInt32(bathsObj)) : 
+                throw new ArgumentException("Baths is required");
+                
+            var squareFeet = arguments.TryGetValue("squareFeet", out var sqftObj) ? 
+                (sqftObj is JsonElement sqftElement ? sqftElement.GetInt32() : Convert.ToInt32(sqftObj)) : 
+                throw new ArgumentException("SquareFeet is required");
+                
+            var ownerId = arguments.TryGetValue("ownerId", out var ownerIdObj) ? Guid.Parse(ownerIdObj.ToString()!) : throw new ArgumentException("OwnerId is required");
+            
+            var isActive = arguments.TryGetValue("isActive", out var activeObj) ? 
+                (activeObj is JsonElement activeElement ? activeElement.GetBoolean() : Convert.ToBoolean(activeObj)) : 
+                true;
+
+            // Extract address
+            if (!arguments.TryGetValue("address", out var addressObj) || addressObj is not JsonElement addressElement)
+                throw new ArgumentException("Address is required");
+
+            var addressDict = JsonSerializer.Deserialize<Dictionary<string, object>>(addressElement.GetRawText());
+            if (addressDict == null) throw new ArgumentException("Invalid address format");
+
+            var street = addressDict.TryGetValue("street", out var streetObj) ? streetObj.ToString() : throw new ArgumentException("Street is required");
+            var city = addressDict.TryGetValue("city", out var cityObj) ? cityObj.ToString() : throw new ArgumentException("City is required");
+            var state = addressDict.TryGetValue("state", out var stateObj) ? stateObj.ToString() : throw new ArgumentException("State is required");
+            var zipCode = addressDict.TryGetValue("zipCode", out var zipObj) ? zipObj.ToString() : throw new ArgumentException("ZipCode is required");
+            var country = addressDict.TryGetValue("country", out var countryObj) ? countryObj.ToString() : "USA"; // Default to USA
+
+            var address = new AddressDto(street!, city!, state!, zipCode!, country!);
+
+            var command = new CreatePropertyCommand(name!, address, description!, price, beds, baths, squareFeet, isActive, ownerId);
+            var propertyId = await _mediator.Send(command);
+
+            return new ToolResult
+            {
+                IsError = false,
+                Content = new List<ContentItem>
+                {
+                    new() { Type = "text", Text = $"Property created successfully with ID: {propertyId}" }
+                }
+            };
+        }
+        catch (Exception ex)
+        {
+            return CreateErrorResult($"Failed to create property: {ex.Message}");
+        }
     }
 
     private ToolResult CreateErrorResult(string message)

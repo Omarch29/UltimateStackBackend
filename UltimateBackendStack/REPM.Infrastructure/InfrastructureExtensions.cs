@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using REPM.Infrastructure.Interfaces;
 using REPM.Infrastructure.Persistence;
 using REPM.Infrastructure.Repositories;
@@ -36,7 +37,12 @@ public static class InfrastructureExtensions
         services.AddDbContext<REPMContext>(options =>
         {
             options.UseNpgsql(sqlConnectionString);
-            // No sensitive data logging for MCP
+            // Completely disable all logging for MCP - STDIO must be pure JSON-RPC
+            options.UseLoggerFactory(LoggerFactory.Create(builder => { }));
+            options.EnableSensitiveDataLogging(false);
+            options.EnableDetailedErrors(false);
+            options.EnableServiceProviderCaching(false);
+            options.ConfigureWarnings(warnings => warnings.Ignore());
         });
 
         services.AddHttpContextAccessor();

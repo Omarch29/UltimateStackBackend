@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using REPM.MCP.Models;
 using REPM.MCP.Tools;
 using REPM.MCP.Handlers;
@@ -9,13 +8,23 @@ namespace REPM.MCP.Server;
 public class McpServer
 {
     private readonly RealEstateToolHandler _toolHandler;
-    private readonly ILogger<McpServer> _logger;
     private bool _initialized = false;
+    private readonly JsonSerializerOptions _jsonOptions;
 
-    public McpServer(RealEstateToolHandler toolHandler, ILogger<McpServer> logger)
+    public McpServer(RealEstateToolHandler toolHandler)
     {
         _toolHandler = toolHandler;
-        _logger = logger;
+        _jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = false
+        };
+    }
+
+    public void SetInitializationState(bool initialized)
+    {
+        _initialized = initialized;
     }
 
     public async Task<McpResponse> HandleRequest(McpRequest request)
@@ -32,23 +41,22 @@ public class McpServer
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling MCP request {Method}", request.Method);
             return CreateErrorResponse(request.Id, -32603, $"Internal error: {ex.Message}");
         }
     }
 
-    private async Task<McpResponse> HandleInitialize(McpRequest request)
+    private Task<McpResponse> HandleInitialize(McpRequest request)
     {
         try
         {
             var initParams = JsonSerializer.Deserialize<InitializeParams>(
-                JsonSerializer.Serialize(request.Params));
+                JsonSerializer.Serialize(request.Params, _jsonOptions), _jsonOptions);
 
             _initialized = true;
 
             var result = new InitializeResult
             {
-                ProtocolVersion = "2024-11-05",
+                ProtocolVersion = "2025-06-18",
                 ServerInfo = new ServerInfo
                 {
                     Name = "REPM MCP Server",
@@ -60,19 +68,16 @@ public class McpServer
                 }
             };
 
-            _logger.LogInformation("MCP Server initialized with protocol version {Version}", 
-                initParams?.ProtocolVersion);
-
-            return new McpResponse
+            return Task.FromResult(new McpResponse
             {
                 Id = request.Id,
-                Result = result
-            };
+                Result = result,
+                Error = null // Explicitly set to null so it's excluded
+            });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error during initialization");
-            return CreateErrorResponse(request.Id, -32602, "Invalid initialization parameters");
+            return Task.FromResult(CreateErrorResponse(request.Id, -32602, "Invalid initialization parameters"));
         }
     }
 
@@ -93,7 +98,8 @@ public class McpServer
         return new McpResponse
         {
             Id = request.Id,
-            Result = result
+            Result = result,
+            Error = null // Explicitly set to null so it's excluded
         };
     }
 
@@ -107,7 +113,7 @@ public class McpServer
         try
         {
             var toolCall = JsonSerializer.Deserialize<ToolCall>(
-                JsonSerializer.Serialize(request.Params));
+                JsonSerializer.Serialize(request.Params, _jsonOptions), _jsonOptions);
 
             if (toolCall == null)
             {
@@ -119,21 +125,22 @@ public class McpServer
             return new McpResponse
             {
                 Id = request.Id,
-                Result = result
+                Result = result,
+                Error = null // Explicitly set to null so it's excluded
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error handling tool call");
             return CreateErrorResponse(request.Id, -32603, $"Tool execution error: {ex.Message}");
         }
     }
 
-    private McpResponse CreateErrorResponse(string id, int code, string message)
+    private McpResponse CreateErrorResponse(object id, int code, string message)
     {
         return new McpResponse
         {
             Id = id,
+            Result = null, // Explicitly set to null so it's excluded
             Error = new McpError
             {
                 Code = code,

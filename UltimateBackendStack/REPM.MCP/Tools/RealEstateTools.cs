@@ -14,6 +14,7 @@ public static class RealEstateTools
             GetUserPropertiesTool(),
             GetLeasesByPropertyTool(),
             CreateLeaseTool(),
+            CreatePropertyTool(),
             MakePaymentTool(),
             SearchPropertiesTool()
         };
@@ -181,6 +182,46 @@ public static class RealEstateTools
                     propertyType = new { type = "string", description = "Property type" },
                     isAvailable = new { type = "boolean", description = "Only show available properties", @default = true }
                 },
+                additionalProperties = false
+            }
+        };
+    }
+
+    private static Tool CreatePropertyTool()
+    {
+        return new Tool
+        {
+            Name = "create_property",
+            Description = "Create a new property in the system",
+            InputSchema = new
+            {
+                type = "object",
+                properties = new
+                {
+                    name = new { type = "string", description = "Property name or title" },
+                    description = new { type = "string", description = "Property description" },
+                    price = new { type = "number", description = "Property price" },
+                    beds = new { type = "integer", description = "Number of bedrooms" },
+                    baths = new { type = "integer", description = "Number of bathrooms" },
+                    squareFeet = new { type = "integer", description = "Property size in square feet" },
+                    isActive = new { type = "boolean", description = "Whether the property is active", @default = true },
+                    ownerId = new { type = "string", description = "ID of the property owner" },
+                    address = new
+                    {
+                        type = "object",
+                        description = "Property address",
+                        properties = new
+                        {
+                            street = new { type = "string", description = "Street address" },
+                            city = new { type = "string", description = "City" },
+                            state = new { type = "string", description = "State" },
+                            zipCode = new { type = "string", description = "ZIP code" }
+                        },
+                        required = new[] { "street", "city", "state", "zipCode" },
+                        additionalProperties = false
+                    }
+                },
+                required = new[] { "name", "description", "price", "beds", "baths", "squareFeet", "ownerId", "address" },
                 additionalProperties = false
             }
         };

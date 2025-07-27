@@ -19,8 +19,14 @@ public static class QueryFilterHelper
 
             // ✅ Try to get the property from the main entity first
             var entityProperty = typeof(T).GetProperty(prop.Name);
+            Expression? left = null;
 
-            if (entityProperty == null)
+            if (entityProperty != null)
+            {
+                // Direct property on the entity
+                left = Expression.Property(parameter, entityProperty);
+            }
+            else
             {
                 // 🔍 Check if it's inside a navigation property (like Address.City)
                 foreach (var navProperty in typeof(T).GetProperties())
@@ -28,18 +34,17 @@ public static class QueryFilterHelper
                     var subProperty = navProperty.PropertyType.GetProperty(prop.Name);
                     if (subProperty != null)
                     {
-                        entityProperty = subProperty;
+                        // Create nested property access: p.Address.City
+                        var navAccess = Expression.Property(parameter, navProperty);
+                        left = Expression.Property(navAccess, subProperty);
                         break;
                     }
                 }
             }
 
-            if (entityProperty == null) continue; // Skip if the property doesn't exist
-
-            // ✅ Build the expression dynamically
-            var left = Expression.Property(parameter, entityProperty);
+            if (left == null) continue; // Skip if the property doesn't exist
             var right = Expression.Constant(filterValue);
-            Expression condition = null;
+            Expression? condition = null;
 
             // Handle special cases (strings, numbers, ranges)
             if (filterValue is string)

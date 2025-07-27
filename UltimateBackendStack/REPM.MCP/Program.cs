@@ -10,11 +10,20 @@ using REPM.MCP.Handlers;
 using REPM.MCP.Models;
 using System.Text.Json;
 
+// Configure JSON serializer options for MCP protocol
+var jsonOptions = new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    PropertyNameCaseInsensitive = true,
+    WriteIndented = false
+};
+
 var builder = Host.CreateApplicationBuilder(args);
 
-// Configure logging
+// Configure logging - completely disable all logging for MCP
 builder.Logging.ClearProviders();
-// No logging providers for MCP - STDIO must be pure JSON-RPC
+builder.Logging.SetMinimumLevel(LogLevel.None);
+// Don't redirect stdout - we need it for JSON-RPC communication
 
 // Add services
 builder.Services.AddInfrastructureForMcp(builder.Configuration);
@@ -42,16 +51,14 @@ catch (Exception)
 }
 
 // Start MCP server
-var logger = host.Services.GetRequiredService<ILogger<Program>>();
 var mcpServer = host.Services.GetRequiredService<McpServer>();
-
-logger.LogInformation("REPM MCP Server starting...");
+var isInitialized = false;
 
 try
 {
     // Read from stdin and write to stdout for MCP protocol
     using var reader = new StreamReader(Console.OpenStandardInput());
-    using var writer = new StreamWriter(Console.OpenStandardOutput());
+    using var writer = new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true };
 
     string? line;
     while ((line = await reader.ReadLineAsync()) != null)
@@ -62,31 +69,37 @@ try
                 continue;
 
             // Parse the JSON-RPC request
-            var request = JsonSerializer.Deserialize<McpRequest>(line);
+            var request = JsonSerializer.Deserialize<McpRequest>(line, jsonOptions);
             if (request == null)
             {
-                logger.LogWarning("Received null request");
                 continue;
             }
 
             // Handle the request
             using var scope = host.Services.CreateScope();
             var scopedServer = scope.ServiceProvider.GetRequiredService<McpServer>();
+            
+            // Set initialization state
+            if (request.Method == "initialize")
+            {
+                isInitialized = true;
+            }
+            scopedServer.SetInitializationState(isInitialized);
+            
             var response = await scopedServer.HandleRequest(request);
 
             // Send the response
-            var responseJson = JsonSerializer.Serialize(response);
+            var responseJson = JsonSerializer.Serialize(response, jsonOptions);
             await writer.WriteLineAsync(responseJson);
             await writer.FlushAsync();
         }
-        catch (JsonException ex)
+        catch (JsonException)
         {
-            logger.LogError(ex, "Invalid JSON received: {Line}", line);
-            
             // Send error response
             var errorResponse = new McpResponse
             {
                 Id = "unknown",
+                Result = null,
                 Error = new McpError
                 {
                     Code = -32700,
@@ -94,20 +107,18 @@ try
                 }
             };
             
-            var errorJson = JsonSerializer.Serialize(errorResponse);
+            var errorJson = JsonSerializer.Serialize(errorResponse, jsonOptions);
             await writer.WriteLineAsync(errorJson);
             await writer.FlushAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            logger.LogError(ex, "Unexpected error processing request");
+            // Silent error handling for MCP - don't output anything to stdout
         }
     }
 }
-catch (Exception ex)
+catch (Exception)
 {
-    logger.LogError(ex, "Fatal error in MCP server");
-    throw;
+    // Silent error handling for MCP
+    Environment.Exit(1);
 }
-
-logger.LogInformation("REPM MCP Server stopped.");
